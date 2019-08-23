@@ -3,7 +3,7 @@
         {
             "broker" : "fixer.io",
             "base" : "http://data.fixer.io/api",
-            "api_key" : "3af1504dbbde88bef0c5bb188fa6daa5"
+            "api_key" : "access_key=3af1504dbbde88bef0c5bb188fa6daa5"
         },
         {
             "broker" : "exchangeratesapi",

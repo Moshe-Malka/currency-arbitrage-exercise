@@ -31,34 +31,39 @@ def handler(event, context):
         brokers = json.loads(brokers_content)['brokers']
     except ClientError as ce:
         print(ce)
-        return { "statusCode" : 500, "message" : "Error While trying to retrive brokers file.", "error" : ce }
+        return { "statusCode" : 500, "message" : "Error While trying to retrive brokers file.", "error" : str(ce) }
     
     # for each broker - issue a get request and store response in S3.
     # NOTE: this is assumming there are not a lot of brokers,
-    # as this can make the lambda timeout.
+    # as this can make the lambda timeout (current operation is ~500 ms per broker request).
     # other option is using a combination of lambdas and sns and or sqs.
 
     for broker in brokers:
         print(f"Getting rates from broker {broker['broker']}")
         if 'api_key' in broker.keys():
-            req_uri = f"{broker['base']}/{date_param}/{broker['api_key']}&base=USD"
+            req_uri = f"{broker['base']}/{date_param}?{broker['api_key']}&base=USD"
         else:
-            req_uri = f"{broker['base']}/{date_param}&base=USD"
+            req_uri = f"{broker['base']}/{date_param}?base=USD"
         try:
+            print(f"Requesting {req_uri} ...")
             broker_response = requests.get(req_uri)
         except Exception as e:
             print(f"Error while trying to request broker {broker['broker']} - {e}.")
         if broker_response.status_code == 200:
+            print(broker_response.text)
             data = broker_response.text
-            if 'rates' in json.loads(data).keys():
-                data = json.dumps(json.loads(data)['rates'])
-            try:
-                s3_response = s3_client.put_object(
-                    Body=data,
-                    Bucket=os.environ['RATES_BUCKET'],
-                    Key=f"{event['date']}/{broker['broker']}/rates.json"
-                    )
-            except ClientError as ce:
-                print(f"Error While trying to retrive brokers file - {ce}")
+            if 'success' in json.loads(data) and not json.loads(data)['success']:
+                print("Request to broker failed!")
+            else:
+                if 'rates' in json.loads(data).keys():
+                    data = json.dumps(json.loads(data)['rates'])
+                try:
+                    s3_response = s3_client.put_object(
+                        Body=data,
+                        Bucket=os.environ['RATES_BUCKET'],
+                        Key=f"{date_param}/{broker['broker']}/rates.json"
+                        )
+                except ClientError as ce:
+                    print(f"Error While trying to retrive brokers file - {ce}")
         else:
-            print(f"Request to broker {broker['broker']} failed! - {broker_response}")
+            print(f"Request to broker {broker['broker']} failed! - {broker_response.content} - {req_uri}")
