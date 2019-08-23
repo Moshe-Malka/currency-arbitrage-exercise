@@ -7,7 +7,7 @@ s3_client = boto3.client('s3')
 
 expected = ['date', 'from_currency', 'to_currency']
 
-def handler(event):
+def handler(event, context):
     if set(expected) != set(event.keys()):
         message = f"Request Parameters Missing - expected : {expected}. got : {event.keys()}"
         print(message)

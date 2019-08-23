@@ -7,7 +7,7 @@ pat = re.compile(r'\d{4}\-\d{2}\-\d{2}')
 
 s3_client = boto3.client('s3')
 
-def handler(event):
+def handler(event, context):
     if 'date' not in event.keys() or not pat.match(event['date']): # e.g. 2019-08-23
         print("Missing / Wrong 'date' param in request.")
         return { "statusCode" : 401, "message" : "Missing / Wrong 'date' param in request." }

@@ -10,7 +10,7 @@ pat = re.compile(r'\d{4}\-\d{2}\-\d{2}')
 
 s3_client = boto3.client('s3')
 
-def handler(event):
+def handler(event, context):
     if 'date' in event.keys():  # Manual initiation
         if pat.match(event['date']):    # e.g. 2019-08-23
             date_param = event['date']
