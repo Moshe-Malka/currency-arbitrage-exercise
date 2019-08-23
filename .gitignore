@@ -18,3 +18,7 @@ var/
 
 # Serverless directories
 .serverless
+
+__pycache__/
+*.py[cod]
+*$py.class
