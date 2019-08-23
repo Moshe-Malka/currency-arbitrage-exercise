@@ -48,8 +48,11 @@ functions:
     handler: Services/ExchangeRatesRetrieval.handler
     iamRoleStatements:
       - Effect: "Allow"
-        Action: s3:PutObject
+        Action: s3:GetObject
         Resource: arn:aws:s3:::${self:custom.RATES_BUCKET}/*
+      - Effect: "Allow"
+        Action: s3:ListBucket
+        Resource: arn:aws:s3:::${self:custom.RATES_BUCKET}
 
   ExPathRecommendation:
     name: ExchangePathRecommendationService
