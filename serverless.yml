@@ -4,13 +4,21 @@ service: pubplus-currency-arbitrage-exercise
 plugins:
   - serverless-iam-roles-per-function
 
+custom:
+  RATES_BUCKET: currency-arbitrage-rates
+  BROKERS_BUCKET: currency-arbitrage-brokers
+  BROKERS_FILENAME: brokers.json
+
+
 provider:
   name: aws
+  profile: moshe-aws
   runtime: python3.7
   region: eu-central-1
-
-environment:
-  RATES_BUCKET: currency-arbitrage-rates
+  environment:
+    RATES_BUCKET: ${self:custom.RATES_BUCKET}
+    BROKERS_BUCKET: ${self:custom.BROKERS_BUCKET}
+    BROKERS_FILENAME: ${self:custom.BROKERS_FILENAME}
 
 functions:
   DataCollectionService:
@@ -18,22 +26,22 @@ functions:
     iamRoleStatements:
       - Effect: "Allow"
         Action: s3:GetObject
-        Resource: arn:aws:s3:::${env:BROKERS_BUCKET}/*
+        Resource: arn:aws:s3:::${self:custom.BROKERS_BUCKET}/*
       - Effect: "Allow"
         Action: s3:PutObject
-        Resource: arn:aws:s3:::${env:RATES_BUCKET}/*
+        Resource: arn:aws:s3:::${self:custom.RATES_BUCKET}/*
     layers:
       # NOTE: this is a third party layer as i did not want to spend time making my own layer through ec2.
       - arn:aws:lambda:eu-central-1:113088814899:layer:Klayers-python37-requests:5
     events:
       - schedule: rate(1 days)
-    environment:
-      BROKERS_BUCKET: currency-arbitrage-brokers
-      BROKERS_FILENAME: brokers.json
-
 
   ExchangeRatesRetrievalService:
     handler: ./Services/ExchangeRatesRetrieval.handler
+    iamRoleStatements:
+      - Effect: "Allow"
+        Action: s3:PutObject
+        Resource: arn:aws:s3:::${self:custom.RATES_BUCKET}/*
 
   ExchangePathRecommendationService:
     handler: ./Services/ExchangePathRecommendation.handler
@@ -43,7 +51,7 @@ resources:
     BrokersBucket:
       Type: AWS::S3::Bucket
       Properties:
-        BucketName: ${env:BROKERS_BUCKET}
+        BucketName: ${self:custom.BROKERS_BUCKET}
         CorsConfiguration:
           CorsRules:
             -
@@ -62,18 +70,18 @@ resources:
     RatesBucket:
       Type: AWS::S3::Bucket
       Properties:
-      BucketName: ${env:RATES_BUCKET}
-        CorsConfiguration:
-          CorsRules:
-            -
-              AllowedOrigins:
-                - '*'
-              AllowedHeaders:
-                - '*'
-              AllowedMethods:
-                - GET
-                - PUT
-                - POST
-                - DELETE
-                - HEAD
-              MaxAge: 3000
+      BucketName: ${self:custom.RATES_BUCKET}
+      CorsConfiguration:
+        CorsRules:
+          -
+            AllowedOrigins:
+              - '*'
+            AllowedHeaders:
+              - '*'
+            AllowedMethods:
+              - GET
+              - PUT
+              - POST
+              - DELETE
+              - HEAD
+            MaxAge: 3000
