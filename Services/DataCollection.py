@@ -39,7 +39,7 @@ def handler(event, context):
     # other option is using a combination of lambdas and sns and or sqs.
 
     for broker in brokers:
-        print(f"Getting rates from broker {broker['broker']}")
+        print(f"Getting rates from broker [{broker['broker']}]")
         if 'api_key' in broker.keys():
             req_uri = f"{broker['base']}/{date_param}?{broker['api_key']}&base=USD"
         else:
@@ -50,20 +50,23 @@ def handler(event, context):
         except Exception as e:
             print(f"Error while trying to request broker {broker['broker']} - {e}.")
         if broker_response.status_code == 200:
-            print(broker_response.text)
             data = broker_response.text
             if 'success' in json.loads(data) and not json.loads(data)['success']:
-                print("Request to broker failed!")
+                print(f"Request to broker failed! => {data}")
             else:
                 if 'rates' in json.loads(data).keys():
                     data = json.dumps(json.loads(data)['rates'])
                 try:
+                    _key = f"{date_param}/{broker['broker']}/rates.json"
                     s3_response = s3_client.put_object(
                         Body=data,
                         Bucket=os.environ['RATES_BUCKET'],
-                        Key=f"{date_param}/{broker['broker']}/rates.json"
+                        Key=_key
                         )
+                    if s3_response['ResponseMetadata']['HTTPStatusCode'] == 200:
+                        print(f"Successfully Inserted new Rates File : {_key}")
                 except ClientError as ce:
                     print(f"Error While trying to retrive brokers file - {ce}")
+                print(data)
         else:
             print(f"Request to broker {broker['broker']} failed! - {broker_response.content} - {req_uri}")
