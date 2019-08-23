@@ -9,7 +9,6 @@ custom:
   BROKERS_BUCKET: currency-arbitrage-brokers
   BROKERS_FILENAME: brokers.json
 
-
 provider:
   name: aws
   profile: moshe-aws

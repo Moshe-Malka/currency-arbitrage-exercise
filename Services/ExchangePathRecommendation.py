@@ -34,3 +34,13 @@ def handler(event, context):
         # TODO: add json_content to graph
 
     # TODO: find path that will lead to a profitable transaction using bellman-ford algo.
+
+
+
+# from itertools import permutations
+# uniq_symbols = set(json_content.keys())
+# combinations = list(permutations(uniq_symbols,  2))
+# rates = []
+# for comb in combinations:
+#       r = get_rate(comb[0], comb[1])
+#       rates.append([comb[0], comb[1, r])
