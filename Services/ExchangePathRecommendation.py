@@ -15,12 +15,11 @@ def handler(event, context):
         objects = s3_client.list_objects_v2(
             Bucket=os.environ['RATES_BUCKET'],
             Prefix=event['date']
-            )['Contents']
+            ).get('Contents', [])
     except ClientError as ce:
         print(f"Error While trying to retrive Rates file with Date {event['date']}- {ce}")
         objects = []
     
-    output = []
     for obj in objects:
         broker_name = obj['key'].split('/')[1]
         try:
@@ -31,14 +30,6 @@ def handler(event, context):
             json_content = {}
             print("Error When trying to retrive file content from S3.")
 
-        # TODO: find optimal path on directed graph.
-        
-        # add to output array
-        output.append({
-            'broker' : broker_name,
-            'from' : '',
-            'to' : '',
-            'rate' : ''
-            })
+        # TODO: add json_content to graph
 
-    return output
+    # TODO: find path that will lead to a profitable transaction using bellman-ford algo.
