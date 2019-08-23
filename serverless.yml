@@ -1,5 +1,5 @@
 
-service: pubplus-currency-arbitrage-exercise
+service: currency-arbitrage
 
 plugins:
   - serverless-iam-roles-per-function
@@ -21,8 +21,12 @@ provider:
     BROKERS_FILENAME: ${self:custom.BROKERS_FILENAME}
 
 functions:
-  DataCollectionService:
-    handler: ./Services/DataCollection.handler
+  DataCollection:
+    name: DataCollectionService
+    package:
+      include:
+        - Services/DataCollection.py
+    handler: Services/DataCollection.handler
     iamRoleStatements:
       - Effect: "Allow"
         Action: s3:GetObject
@@ -34,17 +38,25 @@ functions:
       # NOTE: this is a third party layer as i did not want to spend time making my own layer through ec2.
       - arn:aws:lambda:eu-central-1:113088814899:layer:Klayers-python37-requests:5
     events:
-      - schedule: rate(1 days)
+      - schedule: rate(1 day)
 
-  ExchangeRatesRetrievalService:
-    handler: ./Services/ExchangeRatesRetrieval.handler
+  ExRatesRetrieval:
+    name: ExchangeRatesRetrievalService
+    package:
+      include:
+        - Services/ExchangeRatesRetrieval.py
+    handler: Services/ExchangeRatesRetrieval.handler
     iamRoleStatements:
       - Effect: "Allow"
         Action: s3:PutObject
         Resource: arn:aws:s3:::${self:custom.RATES_BUCKET}/*
 
-  ExchangePathRecommendationService:
-    handler: ./Services/ExchangePathRecommendation.handler
+  ExPathRecommendation:
+    name: ExchangePathRecommendationService
+    package:
+      include:
+        - Services/ExchangePathRecommendation.py
+    handler: Services/ExchangePathRecommendation.handler
 
 resources:
   Resources:
@@ -70,18 +82,18 @@ resources:
     RatesBucket:
       Type: AWS::S3::Bucket
       Properties:
-      BucketName: ${self:custom.RATES_BUCKET}
-      CorsConfiguration:
-        CorsRules:
-          -
-            AllowedOrigins:
-              - '*'
-            AllowedHeaders:
-              - '*'
-            AllowedMethods:
-              - GET
-              - PUT
-              - POST
-              - DELETE
-              - HEAD
-            MaxAge: 3000
+        BucketName: ${self:custom.RATES_BUCKET}
+        CorsConfiguration:
+          CorsRules:
+            -
+              AllowedOrigins:
+                - '*'
+              AllowedHeaders:
+                - '*'
+              AllowedMethods:
+                - GET
+                - PUT
+                - POST
+                - DELETE
+                - HEAD
+              MaxAge: 3000

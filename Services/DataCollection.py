@@ -56,7 +56,7 @@ def handler(event):
                 s3_response = s3_client.put_object(
                     Body=data,
                     Bucket=os.environ['RATES_BUCKET'],
-                    Key=f'{event['date']}/{broker['broker']}/rates.json'
+                    Key=f"{event['date']}/{broker['broker']}/rates.json"
                     )
             except ClientError as ce:
                 print(f"Error While trying to retrive brokers file - {ce}")
