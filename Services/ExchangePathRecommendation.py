@@ -1,4 +1,5 @@
-import os, math, json
+import os
+import json
 import boto3
 from botocore.exceptions import ClientError
 import re
